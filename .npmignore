@@ -1,0 +1,6 @@
+
+src/
+*.ts
+*.zip
+tsconfig.json
+README.md

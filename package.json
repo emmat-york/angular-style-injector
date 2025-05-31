@@ -1,0 +1,26 @@
+{
+  "name": "angular-style-injector",
+  "version": "1.0.0",
+  "description": "Dependency injection container inspired by Angular's Injector.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "di",
+    "dependency injection",
+    "angular",
+    "injector",
+    "typescript"
+  ],
+  "author": "emmat-york",
+  "license": "MIT",
+  "dependencies": {
+    "reflect-metadata": "^0.1.14"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
