@@ -1,6 +1,6 @@
 {
   "name": "angular-style-injector",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Dependency injection container inspired by Angular's Injector.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
