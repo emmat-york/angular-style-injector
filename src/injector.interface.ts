@@ -2,6 +2,7 @@ import { InjectionToken } from './injector.constant';
 import { Injector } from './injector';
 
 export type Constructor<T = any> = new (...args: any[]) => T;
+export type InjectableConstructor = Constructor & { injectable?: true, uniqueServiceId?: string };
 
 export type ProviderToken = Constructor | InjectionToken<unknown>;
 

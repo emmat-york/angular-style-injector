@@ -1,18 +1,22 @@
-import { Constructor } from './injector.interface';
+import {Constructor, InjectableConstructor} from './injector.interface';
+import {generateId} from "./injector.util";
 
 /**
  * @description Decorator that marks a class as available to be provided and injected as a dependency.
  * Marking a class with @Injectable ensures that the compiler will generate
  * the necessary metadata to create the class's dependencies when the class is injected.
  **/
-export function Injectable(): Function {
-  return (constructor: Constructor) => {
-    return class extends constructor {
-      static injectable = true;
+export function Injectable(): (constructor: Constructor) => InjectableConstructor {
+  return (constructor: Constructor): InjectableConstructor => {
+    class InjectableClass extends constructor {
+      static readonly injectable = true;
+      static readonly uniqueServiceId = generateId();
 
       constructor(...args: any[]) {
         super(...args);
       }
-    };
+    }
+
+    return InjectableClass;
   };
 }
