@@ -1,5 +1,5 @@
 import {Constructor, InjectableConstructor} from './injector.interface';
-import {generateId} from "./injector.util";
+import {getID} from "./injector.util";
 
 /**
  * @description Decorator that marks a class as available to be provided and injected as a dependency.
@@ -9,8 +9,8 @@ import {generateId} from "./injector.util";
 export function Injectable(): (constructor: Constructor) => InjectableConstructor {
   return (constructor: Constructor): InjectableConstructor => {
     class InjectableClass extends constructor {
+      static readonly uniqueServiceId = getID();
       static readonly injectable = true;
-      static readonly uniqueServiceId = generateId();
 
       constructor(...args: any[]) {
         super(...args);

@@ -1,8 +1,8 @@
-import {generateId} from "./injector.util";
+import {getID} from "./injector.util";
 
 export class InjectionToken<T> {
   private readonly uniqueDesc: string;
-  private readonly id = generateId();
+  private readonly id = getID();
 
   constructor(uniqueDesc: string) {
     this.uniqueDesc = uniqueDesc;
