@@ -22,8 +22,12 @@ export class Injector {
   static create({ providers, parent, name }: CreateInjectorConfig): Injector {
     const injector = new Injector({ parent, name });
 
-    for (const provider of providers) {
-      injector.provide(provider);
+    if (providers.length) {
+      for (const provider of providers) {
+        injector.provide(provider);
+      }
+    } else {
+      console.warn('Injector created without any providers. Consider adding providers to enable dependency resolution.');
     }
 
     return injector;
