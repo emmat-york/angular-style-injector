@@ -47,7 +47,7 @@ const VALUE_TOKEN = new InjectionToken<number>('VALUE_TOKEN');
 const FACTORY_TOKEN = new InjectionToken<string>('FACTORY_TOKEN');
 const EXISTING_TOKEN = new InjectionToken<number>('EXISTING_TOKEN');
 
-const injector = new Injector.create({
+const injector = Injector.create({
     providers: [
         DependencyOne,
         DependencyTwo,
