@@ -120,7 +120,7 @@ export class Injector {
   // Uses `Reflect.getMetadata` to retrieve the list of dependencies defined in the constructor
   // and recursively resolves each dependency.
   private createClassInstance<T extends InjectableConstructor, Instance extends InstanceType<T>>(constructor: T): Instance {
-    if (!constructor.injectable && !constructor.uniqueServiceId) {
+    if (!constructor.injectable || !constructor.uniqueServiceId) {
       throw new Error(`Cannot instantiate class ${constructor.name} because it does not have a @Injectable decorator.`);
     }
 
