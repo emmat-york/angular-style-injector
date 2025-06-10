@@ -1,4 +1,4 @@
-import {getID} from "./injector.util";
+import { getID } from './injector.util';
 
 export class InjectionToken<T> {
   private readonly uniqueDesc: string;

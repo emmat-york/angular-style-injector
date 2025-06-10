@@ -1,5 +1,5 @@
-import {Constructor, InjectableConstructor} from './injector.interface';
-import {getID} from "./injector.util";
+import { Constructor, InjectableConstructor } from './injector.interface';
+import { getID } from './injector.util';
 
 /**
  * @description Decorator that marks a class as available to be provided and injected as a dependency.

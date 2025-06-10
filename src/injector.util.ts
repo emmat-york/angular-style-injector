@@ -14,7 +14,7 @@ const idGenerator = (): ((prefix?: string) => string) => {
       collection.add(id);
       return id;
     }
-  }
+  };
 };
 
 export const isSingleProvider = (config: ProviderConfig): boolean => {

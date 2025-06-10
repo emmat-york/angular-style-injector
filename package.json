@@ -1,12 +1,13 @@
 {
   "name": "angular-style-injector",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Dependency injection container inspired by Angular's Injector.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "prettier": "npx prettier . --write"
   },
   "keywords": [
     "di",
@@ -21,6 +22,7 @@
     "reflect-metadata": "^0.1.14"
   },
   "devDependencies": {
+    "prettier": "3.5.3",
     "typescript": "^5.0.0"
   }
 }

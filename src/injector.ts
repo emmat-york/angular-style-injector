@@ -1,7 +1,8 @@
 import {
   Constructor,
   CreateInjectorConfig,
-  ExtractOutputValue, InjectableConstructor,
+  ExtractOutputValue,
+  InjectableConstructor,
   ProviderConfig,
   ProviderToken,
 } from './injector.interface';
@@ -27,7 +28,9 @@ export class Injector {
         injector.provide(provider);
       }
     } else {
-      console.warn('Injector created without any providers. Consider adding providers to enable dependency resolution.');
+      console.warn(
+        'Injector created without any providers. Consider adding providers to enable dependency resolution.',
+      );
     }
 
     return injector;
@@ -96,7 +99,7 @@ export class Injector {
     }
 
     if (Array.isArray(configByToken)) {
-      const resolvers = configByToken.map((config) => this.getResolvedSingleProvider(config));
+      const resolvers = configByToken.map(config => this.getResolvedSingleProvider(config));
       this.resolvers.set(token, resolvers);
     } else {
       this.resolvers.set(token, this.getResolvedSingleProvider(configByToken));
@@ -112,7 +115,7 @@ export class Injector {
       return providerConfig.useValue;
     } else if ('useFactory' in providerConfig) {
       const depsList = providerConfig.deps ?? [];
-      const resolvedDeps = depsList.map((token) => this.get(token));
+      const resolvedDeps = depsList.map(token => this.get(token));
 
       return providerConfig.useFactory(...resolvedDeps);
     } else {
@@ -123,13 +126,17 @@ export class Injector {
   // Creates an instance of a dependency by resolving its constructor dependencies.
   // Uses `Reflect.getMetadata` to retrieve the list of dependencies defined in the constructor
   // and recursively resolves each dependency.
-  private createClassInstance<T extends InjectableConstructor, Instance extends InstanceType<T>>(constructor: T): Instance {
+  private createClassInstance<T extends InjectableConstructor, Instance extends InstanceType<T>>(
+    constructor: T,
+  ): Instance {
     if (!constructor.injectable || !constructor.uniqueServiceId) {
-      throw new Error(`Cannot instantiate class ${constructor.name} because it does not have a @Injectable decorator.`);
+      throw new Error(
+        `Cannot instantiate class ${constructor.name} because it does not have a @Injectable decorator.`,
+      );
     }
 
     const depsList: Constructor[] = Reflect.getMetadata('design:paramtypes', constructor) ?? [];
-    const resolvedDeps = depsList.map((dependency) => this.get(dependency));
+    const resolvedDeps = depsList.map(dependency => this.get(dependency));
 
     return new constructor(...resolvedDeps) as Instance;
   }
