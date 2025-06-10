@@ -8,15 +8,26 @@ A lightweight dependency injection container inspired by Angular's Injector.
 npm install angular-style-injector
 ```
 
-## Usage
+## Preconditions
+Before you start using this package, make sure to complete the following steps first:
 
-Make sure to import `reflect-metadata` once in your entry point file:
+1. Import `reflect-metadata` once in your entry point `.ts` file:
 
 ```ts
 import 'reflect-metadata';
 ```
+2. Add these two essential parameters to your `tsconfig.json` file:
 
-Then you can use the Injector as follows:
+```json
+{
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+  }
+}
+```
+
+## Usage
 
 ```ts
 import {Injector, Injectable, InjectionToken} from 'angular-style-injector';
