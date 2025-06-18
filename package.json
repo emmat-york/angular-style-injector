@@ -14,7 +14,11 @@
     "dependency injection",
     "angular",
     "injector",
-    "typescript"
+    "typescript",
+    "ioc",
+    "ioccontainer",
+    "ioc-container",
+    "di container"
   ],
   "author": "emmat-york",
   "license": "MIT",

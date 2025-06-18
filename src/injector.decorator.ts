@@ -7,16 +7,10 @@ import { getID } from './injector.util';
  * the necessary metadata to create the class's dependencies when the class is injected.
  **/
 export function Injectable(): (constructor: Constructor) => InjectableConstructor {
-  return (constructor: Constructor): InjectableConstructor => {
-    class InjectableClass extends constructor {
-      static readonly uniqueServiceId = getID();
-      static readonly injectable = true;
+  return (constructor: any): InjectableConstructor => {
+    constructor.uniqueServiceId = getID();
+    constructor.injectable = true;
 
-      constructor(...args: any[]) {
-        super(...args);
-      }
-    }
-
-    return InjectableClass;
+    return constructor;
   };
 }

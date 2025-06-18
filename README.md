@@ -10,9 +10,9 @@ npm install angular-style-injector
 
 ## Preconditions
 
-Before you start using this package, make sure to complete the following steps first:
+Before you start using this package, make sure to complete the following steps:
 
-1. Import `reflect-metadata` once in your entry point `.ts` file:
+1. Import `reflect-metadata` once in your entry point `.ts` file (`main.ts` or maybe `index.ts`):
 
 ```ts
 import 'reflect-metadata';
@@ -49,15 +49,15 @@ class Parent {
   readonly description = 'Parent';
 
   constructor(
-    readonly dependencyOne: DependencyOne,
-    readonly dependencyTwo: DependencyTwo,
+    readonly depOne: DependencyOne,
+    readonly depTwo: DependencyTwo,
   ) {}
 }
 
-const CLASS_TOKEN = new InjectionToken<Parent>('CLASS_TOKEN');
-const VALUE_TOKEN = new InjectionToken<number>('VALUE_TOKEN');
-const FACTORY_TOKEN = new InjectionToken<string>('FACTORY_TOKEN');
-const EXISTING_TOKEN = new InjectionToken<number>('EXISTING_TOKEN');
+const CLASS_TOKEN = new InjectionToken<Parent>('Class token');
+const VALUE_TOKEN = new InjectionToken<number>('Value token');
+const FACTORY_TOKEN = new InjectionToken<string>('Factory token');
+const EXISTING_TOKEN = new InjectionToken<number>('Existing token');
 
 const injector = Injector.create({
   providers: [
@@ -73,13 +73,13 @@ const injector = Injector.create({
       DependencyTwo,
       {
         provide: FACTORY_TOKEN,
-        useFactory: (dependencyTwo: DependencyTwo) => dependencyTwo.description,
+        useFactory: (depTwo: DependencyTwo) => depTwo.description,
         deps: [DependencyTwo],
       },
     ],
-    name: 'parentInjector',
+    name: 'Parent injector',
   }),
-  name: 'elementInjector',
+  name: 'Origin injector',
 });
 
 console.log(

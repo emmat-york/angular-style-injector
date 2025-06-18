@@ -36,20 +36,27 @@ export class Injector {
     return injector;
   }
 
+  get<T extends ProviderToken, Output extends ExtractOutputValue<T>>(token: T): Output {
+    return this.internalGet(token, this.name);
+  }
+
   // Method to retrieve a resolved dependency by its token. If the dependency is already resolved,
   // it returns the cached value from resolvers. Otherwise, it initiates the resolution process.
-  get<T extends ProviderToken, Output extends ExtractOutputValue<T>>(token: T): Output {
+  private internalGet<T extends ProviderToken, Output extends ExtractOutputValue<T>>(
+    token: T,
+    originName?: string,
+  ): Output {
     const providerConfig = this.providers.get(token);
     const resolver = this.resolvers.get(token);
 
     if (!providerConfig && this.parent) {
-      return this.parent.get(token);
+      return this.parent.internalGet(token, originName);
     }
 
     if (resolver) {
       return resolver as Output;
     } else {
-      this.resolve(token);
+      this.resolve(token, originName);
     }
 
     return this.resolvers.get(token) as Output;
@@ -89,37 +96,41 @@ export class Injector {
   }
 
   // Method for resolving a dependency by its token. Determines how to create a value for the token based on its configuration.
-  private resolve(token: ProviderToken): void {
+  private resolve(token: ProviderToken, originName?: string): void {
     const configByToken = this.providers.get(token);
 
     if (!configByToken) {
       throw new Error(
-        `No provider for ${getTokenName(token)}. ${this.name ? `Injector: ${this.name}` : ''}`.trim(),
+        `No provider for ${getTokenName(token)}. ${
+          originName ? `Injector's name: ${originName}` : ''
+        }`,
       );
     }
 
     if (Array.isArray(configByToken)) {
-      const resolvers = configByToken.map(config => this.getResolvedSingleProvider(config));
+      const resolvers = configByToken.map(config =>
+        this.getResolvedSingleProvider(config, originName),
+      );
       this.resolvers.set(token, resolvers);
     } else {
-      this.resolvers.set(token, this.getResolvedSingleProvider(configByToken));
+      this.resolvers.set(token, this.getResolvedSingleProvider(configByToken, originName));
     }
   }
 
-  private getResolvedSingleProvider(providerConfig: ProviderConfig): any {
+  private getResolvedSingleProvider(providerConfig: ProviderConfig, originName?: string): any {
     if (typeof providerConfig === 'function') {
-      return this.createClassInstance(providerConfig);
+      return this.createClassInstance(providerConfig, originName);
     } else if ('useClass' in providerConfig) {
-      return this.createClassInstance(providerConfig.useClass);
+      return this.createClassInstance(providerConfig.useClass, originName);
     } else if ('useValue' in providerConfig) {
       return providerConfig.useValue;
     } else if ('useFactory' in providerConfig) {
       const depsList = providerConfig.deps ?? [];
-      const resolvedDeps = depsList.map(token => this.get(token));
+      const resolvedDeps = depsList.map(token => this.internalGet(token, originName));
 
       return providerConfig.useFactory(...resolvedDeps);
     } else {
-      return this.get(providerConfig.useExisting);
+      return this.internalGet(providerConfig.useExisting, originName);
     }
   }
 
@@ -128,6 +139,7 @@ export class Injector {
   // and recursively resolves each dependency.
   private createClassInstance<T extends InjectableConstructor, Instance extends InstanceType<T>>(
     constructor: T,
+    originName?: string,
   ): Instance {
     if (!constructor.injectable || !constructor.uniqueServiceId) {
       throw new Error(
@@ -136,7 +148,7 @@ export class Injector {
     }
 
     const depsList: Constructor[] = Reflect.getMetadata('design:paramtypes', constructor) ?? [];
-    const resolvedDeps = depsList.map(dependency => this.get(dependency));
+    const resolvedDeps = depsList.map(dependency => this.internalGet(dependency, originName));
 
     return new constructor(...resolvedDeps) as Instance;
   }
