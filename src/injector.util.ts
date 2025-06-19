@@ -1,4 +1,4 @@
-import { ProviderConfig, ProviderToken } from './injector.interface';
+import { ProviderConfig } from './injector.interface';
 
 const idGenerator = (): ((prefix?: string) => string) => {
   const collection = new Set<string>();
@@ -19,22 +19,6 @@ const idGenerator = (): ((prefix?: string) => string) => {
 
 export const isSingleProvider = (config: ProviderConfig): boolean => {
   return typeof config === 'function' || !('multi' in config) || !config.multi;
-};
-
-export const getTokenName = (token: ProviderToken): string => {
-  return typeof token === 'function' ? token.name : token.description;
-};
-
-export const INJECTOR_ERRORS = {
-  EMPTY_PROVIDERS: (name?: string): string => {
-    return `Injector created without any providers.Consider adding providers
-     to enable dependency resolution. ${name && `Injector: ${name}`}`;
-  },
-  PROVIDER_NOT_FOUND: (token: ProviderToken, name?: string): string => {
-    return `Injector Error: No provider for ${getTokenName(token)}. ${
-      name ? `Injector: ${name}` : ''
-    }`;
-  },
 };
 
 export const getID = idGenerator();

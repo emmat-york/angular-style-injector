@@ -6,7 +6,8 @@ import {
   ProviderConfig,
   ProviderToken,
 } from './injector.interface';
-import { INJECTOR_ERRORS, isSingleProvider } from './injector.util';
+import { isSingleProvider } from './injector.util';
+import { INJECTOR_ERRORS } from './injector.constant';
 
 export class Injector {
   private readonly providers = new Map<ProviderToken, ProviderConfig | ProviderConfig[]>();
@@ -109,7 +110,7 @@ export class Injector {
    * @description Registers a provider in the injector.
    * Handles both single and multi-provider configurations.
    * If a multi provider is added for an existing token, it merges the configurations into an array.
-   * Clears any previously resolved instance for the given token to allow proper re-resolution.
+   * Clears any previously resolved instance for the given token to allow proper re resolution.
    *
    * @param providerConfig - The provider configuration to register.
    **/
@@ -124,12 +125,12 @@ export class Injector {
       this.providers.set(token, providerConfig);
     } else {
       // Multi-provider:
-      // 1. config has "multi: true";
+      // 1. Config has "multi: true";
       // 2. Need to be combined with other multi-providers by the same token.
       const existingProviderConfig = this.providers.get(token);
 
       if (Array.isArray(existingProviderConfig)) {
-        // If there is already an array of providers, just add a new one.
+        // If there is already an array of providers, add a new one.
         existingProviderConfig.push(providerConfig);
       } else if (existingProviderConfig) {
         // If there is already one regular provider (not an array), turn it into an array + add a new one.
@@ -211,9 +212,7 @@ export class Injector {
     originName?: string,
   ): Instance {
     if (!constructor.injectable || !constructor.uniqueServiceId) {
-      throw new Error(
-        `Cannot instantiate class ${constructor.name} because it does not have a @Injectable decorator.`,
-      );
+      throw new Error(INJECTOR_ERRORS.DECORATOR_MISSING(constructor.name));
     }
 
     const depsList: Constructor[] = Reflect.getMetadata('design:paramtypes', constructor) ?? [];
