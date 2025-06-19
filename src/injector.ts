@@ -6,7 +6,7 @@ import {
   ProviderConfig,
   ProviderToken,
 } from './injector.interface';
-import { getTokenName, isSingleProvider } from './injector.util';
+import { INJECTOR_ERRORS, isSingleProvider } from './injector.util';
 
 export class Injector {
   private readonly providers = new Map<ProviderToken, ProviderConfig | ProviderConfig[]>();
@@ -20,28 +20,57 @@ export class Injector {
     this.name = config.name;
   }
 
-  static create({ providers, parent, name }: CreateInjectorConfig): Injector {
-    const injector = new Injector({ parent, name });
+  /**
+   * @description Creates a new instance of the `Injector` class.
+   *
+   * @param config Configuration object used to initialize the injector.
+   * - `providers`: An array of provider definitions used to resolve dependencies.
+   * - `parent` (optional): An optional parent injector to fall back to when a provider is not found locally.
+   * - `name` (optional): A developer-defined name used for debugging and error reporting.
+   * @returns A new `Injector` instance configured with the given providers and options.
+   *
+   * @remarks If no providers are passed, a warning will be logged to the console.
+   **/
+  static create(config: CreateInjectorConfig): Injector {
+    const injector = new Injector({ parent: config.parent, name: config.name });
 
-    if (providers.length) {
-      for (const provider of providers) {
+    if (config.providers.length) {
+      for (const provider of config.providers) {
         injector.provide(provider);
       }
     } else {
-      console.warn(
-        'Injector created without any providers. Consider adding providers to enable dependency resolution.',
-      );
+      console.warn(INJECTOR_ERRORS.EMPTY_PROVIDERS(config.name));
     }
 
     return injector;
   }
 
+  /**
+   * @description Retrieves an instance from the injector based on the provided token.
+   *
+   * @param token The provider token used to retrieve the instance.
+   * @returns The resolved instance associated with the token.
+   * @throws Error If no provider is found for the given token.
+   *
+   * @remarks If the token is not found in the current injector,
+   * the method delegates resolution to the parent injector (if present).
+   **/
   get<T extends ProviderToken, Output extends ExtractOutputValue<T>>(token: T): Output {
     return this.internalGet(token, this.name);
   }
 
-  // Method to retrieve a resolved dependency by its token. If the dependency is already resolved,
-  // it returns the cached value from resolvers. Otherwise, it initiates the resolution process.
+  /**
+   * `internalGet` was extracted as a separate method to preserve the original injector's name (`originName`)
+   * during recursive resolution through the parent injector chain.
+   *
+   * This ensures accurate error reporting by indicating where the resolution started,
+   * even if the token is eventually found in a parent injector.
+   *
+   * It's a technical layer that supports:
+   * - consistent origin tracking;
+   * - recursive lookup logic;
+   * - and clean separation of concerns in the public `get()` API.
+   **/
   private internalGet<T extends ProviderToken, Output extends ExtractOutputValue<T>>(
     token: T,
     originName?: string,
@@ -62,6 +91,14 @@ export class Injector {
     return this.resolvers.get(token) as Output;
   }
 
+  /**
+   * @description Registers a provider in the injector.
+   * Handles both single and multi-provider configurations.
+   * If a multi provider is added for an existing token, it merges the configurations into an array.
+   * Clears any previously resolved instance for the given token to allow proper re-resolution.
+   *
+   * @param providerConfig - The provider configuration to register.
+   **/
   private provide(providerConfig: ProviderConfig): void {
     const token = typeof providerConfig === 'function' ? providerConfig : providerConfig.provide;
 
@@ -95,16 +132,20 @@ export class Injector {
     }
   }
 
-  // Method for resolving a dependency by its token. Determines how to create a value for the token based on its configuration.
+  /**
+   * @description Resolves a provider by its token and stores the result in the internal cache (`resolvers`).
+   * If the provider is not found in the current injector, an error is thrown with the name of the injector
+   * that initiated the request (`originName`). Supports both single and multi-provider configurations.
+   *
+   * @param token - The token used to look up the provider.
+   * @param originName - The name of the injector where the resolution started (used for better error messages).
+   * @throws Error if the token is not registered in the current injector.
+   **/
   private resolve(token: ProviderToken, originName?: string): void {
     const configByToken = this.providers.get(token);
 
     if (!configByToken) {
-      throw new Error(
-        `No provider for ${getTokenName(token)}. ${
-          originName ? `Injector's name: ${originName}` : ''
-        }`,
-      );
+      throw new Error(INJECTOR_ERRORS.PROVIDER_NOT_FOUND(token, originName));
     }
 
     if (Array.isArray(configByToken)) {
@@ -117,6 +158,20 @@ export class Injector {
     }
   }
 
+  /**
+   * @description Resolves a single provider configuration into its actual value or instance.
+   * Handles different types of provider strategies:
+   * - Class constructors (useClass or direct class).
+   * - Static values (useValue).
+   * - Factory functions (useFactory with optional dependencies).
+   * - Aliased providers (useExisting).
+   *
+   * This method is used internally by `resolve` and assumes that the provided config is valid.
+   *
+   * @param providerConfig - The configuration object or class constructor to resolve.
+   * @param originName - The name of the injector that initiated the resolution (for error context).
+   * @returns The resolved instance or value for the provider.
+   **/
   private getResolvedSingleProvider(providerConfig: ProviderConfig, originName?: string): any {
     if (typeof providerConfig === 'function') {
       return this.createClassInstance(providerConfig, originName);
@@ -134,9 +189,10 @@ export class Injector {
     }
   }
 
-  // Creates an instance of a dependency by resolving its constructor dependencies.
-  // Uses `Reflect.getMetadata` to retrieve the list of dependencies defined in the constructor
-  // and recursively resolves each dependency.
+  /** Creates an instance of a dependency by resolving its constructor dependencies.
+   * Uses `Reflect.getMetadata` to retrieve the list of dependencies defined in the constructor
+   * and recursively resolves each dependency.
+   **/
   private createClassInstance<T extends InjectableConstructor, Instance extends InstanceType<T>>(
     constructor: T,
     originName?: string,
