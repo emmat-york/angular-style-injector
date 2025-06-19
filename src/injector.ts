@@ -49,18 +49,23 @@ export class Injector {
    * @description Retrieves an instance from the injector based on the provided token.
    *
    * @param token The provider token used to retrieve the instance.
+   * @param notFoundValue A fallback value to return if the token is not provided by this injector or its parents.
+   * If `notFoundValue` is not provided and the token cannot be resolved, an error is thrown.
    * @returns The resolved instance associated with the token.
    * @throws Error If no provider is found for the given token.
    *
    * @remarks If the token is not found in the current injector,
    * the method delegates resolution to the parent injector (if present).
    **/
-  get<T extends ProviderToken, Output extends ExtractOutputValue<T>>(token: T): Output {
-    return this.internalGet(token, this.name);
+  get<T extends ProviderToken, Output extends ExtractOutputValue<T>>(
+    token: T,
+    notFoundValue?: Output,
+  ): Output {
+    return this.internalGet(token, this.name, notFoundValue);
   }
 
   /**
-   * `internalGet` was extracted as a separate method to preserve the original injector's name (`originName`)
+   * @description `internalGet` was extracted as a separate method to preserve the original injector's name (`originName`)
    * during recursive resolution through the parent injector chain.
    *
    * This ensures accurate error reporting by indicating where the resolution started,
@@ -74,18 +79,27 @@ export class Injector {
   private internalGet<T extends ProviderToken, Output extends ExtractOutputValue<T>>(
     token: T,
     originName?: string,
+    notFoundValue?: Output,
   ): Output {
     const providerConfig = this.providers.get(token);
     const resolver = this.resolvers.get(token);
 
-    if (!providerConfig && this.parent) {
-      return this.parent.internalGet(token, originName);
+    if (!providerConfig) {
+      if (this.parent) {
+        return this.parent.internalGet(token, originName, notFoundValue);
+      }
+
+      if (notFoundValue !== undefined) {
+        return notFoundValue;
+      }
+
+      throw new Error(INJECTOR_ERRORS.PROVIDER_NOT_FOUND(token, originName));
     }
 
     if (resolver) {
       return resolver as Output;
     } else {
-      this.resolve(token, originName);
+      this.resolve(token, providerConfig, originName);
     }
 
     return this.resolvers.get(token) as Output;
@@ -138,23 +152,22 @@ export class Injector {
    * that initiated the request (`originName`). Supports both single and multi-provider configurations.
    *
    * @param token - The token used to look up the provider.
+   * @param providerConfig - The actual provider configuration(s) associated with the token.
    * @param originName - The name of the injector where the resolution started (used for better error messages).
    * @throws Error if the token is not registered in the current injector.
    **/
-  private resolve(token: ProviderToken, originName?: string): void {
-    const configByToken = this.providers.get(token);
-
-    if (!configByToken) {
-      throw new Error(INJECTOR_ERRORS.PROVIDER_NOT_FOUND(token, originName));
-    }
-
-    if (Array.isArray(configByToken)) {
-      const resolvers = configByToken.map(config =>
+  private resolve(
+    token: ProviderToken,
+    providerConfig: ProviderConfig | ProviderConfig[],
+    originName?: string,
+  ): void {
+    if (Array.isArray(providerConfig)) {
+      const resolvers = providerConfig.map(config =>
         this.getResolvedSingleProvider(config, originName),
       );
       this.resolvers.set(token, resolvers);
     } else {
-      this.resolvers.set(token, this.getResolvedSingleProvider(configByToken, originName));
+      this.resolvers.set(token, this.getResolvedSingleProvider(providerConfig, originName));
     }
   }
 
