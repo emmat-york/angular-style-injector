@@ -30,5 +30,5 @@ export const INJECTOR_ERRORS = {
   PROVIDER_NOT_FOUND: (token: ProviderToken, name?: string): string =>
     `Injector Error: No provider for ${getTokenName(token)}. ${name && `Injector: ${name}`}`,
   DECORATOR_MISSING: (constructorName: string): string =>
-    `Cannot instantiate class ${constructorName} because it does not have a @Injectable decorator.`,
+    `Injector Error: Cannot instantiate class ${constructorName} because it does not have a @Injectable decorator.`,
 };
