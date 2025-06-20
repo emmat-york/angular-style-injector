@@ -1,4 +1,4 @@
-import { Constructor, InjectableConstructor } from './injector.interface';
+import { InjectableConstructor } from './injector.interface';
 import { getID } from './injector.util';
 
 /**
@@ -6,7 +6,7 @@ import { getID } from './injector.util';
  * Marking a class with @Injectable ensures that the compiler will generate
  * the necessary metadata to create the class's dependencies when the class is injected.
  **/
-export function Injectable(): (constructor: Constructor) => InjectableConstructor {
+export function Injectable(): Function {
   return (constructor: any): InjectableConstructor => {
     constructor.uniqueServiceId = getID();
     constructor.injectable = true;

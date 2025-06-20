@@ -1,7 +1,7 @@
 import { InjectionToken } from './injector.constant';
 import { Injector } from './injector';
 
-export type Constructor = new (...args: any[]) => object;
+export type Constructor = { new (...args: any[]): object };
 export type InjectableConstructor = Constructor & {
   uniqueServiceId?: string;
   injectable?: true;

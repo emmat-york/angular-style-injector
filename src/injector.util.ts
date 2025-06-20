@@ -1,17 +1,17 @@
 import { ProviderConfig } from './injector.interface';
 
 const idGenerator = (): ((prefix?: string) => string) => {
-  const collection = new Set<string>();
+  const idsCollection = new Set<string>();
 
   return function generate(prefix: string = ''): string {
     const timestamp = Date.now().toString(36);
     const random = Math.random().toString(36).substring(2, 10);
     const id = prefix + timestamp + random;
 
-    if (collection.has(id)) {
+    if (idsCollection.has(id)) {
       return generate(prefix);
     } else {
-      collection.add(id);
+      idsCollection.add(id);
       return id;
     }
   };
