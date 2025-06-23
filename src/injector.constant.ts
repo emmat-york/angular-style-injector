@@ -25,13 +25,13 @@ const getInjectorName = (name?: string): string => {
 };
 
 export const INJECTOR_ERRORS = {
-  EMPTY_PROVIDERS: (name?: string): string => {
+  EMPTY_PROVIDERS_WARN: (name?: string): string => {
     return `Injector created without any providers. Consider adding providers to enable dependency resolution. ${getInjectorName(name)}`;
   },
-  PROVIDER_NOT_FOUND: (token: ProviderToken, name?: string): string => {
+  THROW_PROVIDER_NOT_FOUND: (token: ProviderToken, name?: string): string => {
     return `Injector Error: No provider for ${getTokenName(token)}. ${getInjectorName(name)}`;
   },
-  DECORATOR_MISSING: (constructorName: string): string => {
+  THROW_DECORATOR_MISSING: (constructorName: string): string => {
     return `Injector Error: Cannot instantiate class ${constructorName} because it does not have the @Injectable decorator.`;
   },
 };

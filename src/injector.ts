@@ -3,6 +3,7 @@ import {
   CreateInjectorConfig,
   ExtractOutputValue,
   InjectableConstructor,
+  InjectOptions,
   ProviderConfig,
   ProviderToken,
 } from './injector.interface';
@@ -39,7 +40,7 @@ export class Injector {
         injector.provide(provider);
       }
     } else {
-      console.warn(INJECTOR_ERRORS.EMPTY_PROVIDERS(config.name));
+      console.warn(INJECTOR_ERRORS.EMPTY_PROVIDERS_WARN(config.name));
     }
 
     return injector;
@@ -50,8 +51,13 @@ export class Injector {
    *
    * @param token The provider token used to retrieve the instance.
    * @param notFoundValue A fallback value to return if the token is not provided by this injector or its parents.
+   * @param options Configuration object that influences how a dependency is resolved by the injector.
+   * - `optional` (optional): If true, the injector returns `null` instead of throwing an error when the token was not found.
+   * - `skipSelf` (optional): If true, the injector skips checking itself and instead delegates resolution to its parent (if presents).
+   * - `self` (optional): If true, the injector only looks for the dependency in itself and does not check the parent injector (if presents).
    * @returns The resolved instance associated with the token.
-   * @throws Error If no provider is found and `notFoundValue` has not been provided for the given token.
+   * @throws Error If the provider cannot be found in the current or parent injectors, and neither a `notFoundValue`
+   * nor the `optional` flag was provided in the options.
    *
    * @remarks If the token is not found in the current injector,
    * the method delegates resolution to the parent injector (if present).
@@ -59,8 +65,9 @@ export class Injector {
   get<T extends ProviderToken, Output extends ExtractOutputValue<T>>(
     token: T,
     notFoundValue?: Output,
+    options?: InjectOptions,
   ): Output {
-    return this.internalGet(token, this.name, notFoundValue);
+    return this.internalGet(token, this.name, notFoundValue, options);
   }
 
   /**
@@ -72,29 +79,41 @@ export class Injector {
     token: T,
     originName?: string,
     notFoundValue?: Output,
+    options?: InjectOptions,
   ): Output {
-    const resolver = this.resolvers.get(token);
+    const { optional, self, skipSelf } = options ?? {};
 
-    if (resolver) {
-      return resolver as Output;
-    }
+    const shouldCheckSelf = !skipSelf || self;
+    const shouldCheckParent = !self;
 
-    const provider = this.providers.get(token);
+    if (shouldCheckSelf) {
+      const resolver = this.resolvers.get(token);
 
-    if (!provider) {
-      if (this.parent) {
-        return this.parent.internalGet(token, originName, notFoundValue);
+      if (resolver) {
+        return resolver as Output;
       }
 
-      if (notFoundValue !== undefined) {
-        return notFoundValue;
-      }
+      const provider = this.providers.get(token);
 
-      throw new Error(INJECTOR_ERRORS.PROVIDER_NOT_FOUND(token, originName));
+      if (provider) {
+        this.resolve(token, provider, originName);
+        return this.resolvers.get(token) as Output;
+      }
     }
 
-    this.resolve(token, provider, originName);
-    return this.resolvers.get(token) as Output;
+    if (shouldCheckParent && this.parent) {
+      return this.parent.internalGet(token, originName, notFoundValue);
+    }
+
+    if (notFoundValue !== undefined) {
+      return notFoundValue;
+    }
+
+    if (optional) {
+      return null as Output;
+    }
+
+    throw new Error(INJECTOR_ERRORS.THROW_PROVIDER_NOT_FOUND(token, originName));
   }
 
   /**
@@ -196,7 +215,7 @@ export class Injector {
     originName?: string,
   ): Instance {
     if (!constructor.__injectable__) {
-      throw new Error(INJECTOR_ERRORS.DECORATOR_MISSING(constructor.name));
+      throw new Error(INJECTOR_ERRORS.THROW_DECORATOR_MISSING(constructor.name));
     }
 
     const depsList: Constructor[] = Reflect.getMetadata('design:paramtypes', constructor) ?? [];

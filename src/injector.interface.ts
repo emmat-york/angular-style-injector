@@ -26,6 +26,12 @@ export interface CreateInjectorConfig {
   name?: string;
 }
 
+export interface InjectOptions {
+  optional?: boolean;
+  skipSelf?: boolean;
+  self?: boolean;
+}
+
 export type ExtractOutputValue<T extends ProviderToken> = T extends Constructor
   ? InstanceType<T>
   : T extends InjectionToken<infer U>
