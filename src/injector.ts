@@ -165,7 +165,7 @@ export class Injector {
    * @param originName The name of the injector that initiated the resolution.
    * @returns The resolved instance or value for the provider.
    **/
-  private getResolvedSingleProvider(providerConfig: ProviderConfig, originName?: string): any {
+  private getResolvedSingleProvider(providerConfig: ProviderConfig, originName?: string): unknown {
     if (typeof providerConfig === 'function') {
       return this.createClassInstance(providerConfig, originName);
     } else if ('useClass' in providerConfig) {
