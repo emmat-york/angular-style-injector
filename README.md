@@ -89,3 +89,41 @@ console.log(
   injector.get(EXISTING_TOKEN), // Array: [10, 20]
 );
 ```
+
+
+### Optional Dependencies and Fallback Values
+
+You can control how the `Injector` resolves missing dependencies using the optional `notFoundValue` and `InjectOptions`.
+
+#### Using `notFoundValue`
+
+```ts
+const injector = Injector.create({ providers: [] });
+const value = injector.get(new InjectionToken('MISSING_TOKEN'), 'Default Value');
+console.log(value); // "Default Value"
+```
+
+#### Using `InjectOptions`
+
+You can provide options like `optional`, `self`, and `skipSelf` to control resolution behavior:
+
+```ts
+const token = new InjectionToken<string>('TestToken');
+
+const parent = Injector.create({ providers: [{ provide: token, useValue: 'from parent' }] });
+const child = Injector.create({ providers: [], parent });
+
+const value1 = child.get(token); // "from parent"
+
+const value2 = child.get(token, undefined, { self: true }); // throws Error
+const value3 = child.get(token, null, { optional: true });  // returns null
+```
+
+`InjectOptions` interface:
+```ts
+interface InjectOptions {
+  optional?: boolean; // if true, returns null when token is not found
+  self?: boolean;     // if true, only checks current injector
+  skipSelf?: boolean; // if true, skips current injector and looks up the parent chain
+}
+```
