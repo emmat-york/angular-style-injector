@@ -3,8 +3,7 @@ import { Injector } from './injector';
 
 export type Constructor = { new (...args: any[]): object };
 export type InjectableConstructor = Constructor & {
-  uniqueServiceId?: string;
-  injectable?: true;
+  __injectable__?: true;
 };
 
 export type ProviderToken = Constructor | InjectionToken<unknown>;

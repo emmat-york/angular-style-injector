@@ -6,8 +6,7 @@ import {
   ProviderConfig,
   ProviderToken,
 } from './injector.interface';
-import { isSingleProvider } from './injector.util';
-import { INJECTOR_ERRORS } from './injector.constant';
+import { INJECTOR_ERRORS, isSingleProvider } from './injector.constant';
 
 export class Injector {
   private readonly providers = new Map<ProviderToken, ProviderConfig | ProviderConfig[]>();
@@ -196,7 +195,7 @@ export class Injector {
     constructor: T,
     originName?: string,
   ): Instance {
-    if (!constructor.injectable || !constructor.uniqueServiceId) {
+    if (!constructor.__injectable__) {
       throw new Error(INJECTOR_ERRORS.DECORATOR_MISSING(constructor.name));
     }
 

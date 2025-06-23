@@ -1,9 +1,7 @@
-import { getID } from './injector.util';
-import { ProviderToken } from './injector.interface';
+import { ProviderConfig, ProviderToken } from './injector.interface';
 
 export class InjectionToken<T> {
   private readonly uniqueDesc: string;
-  private readonly id = getID();
 
   constructor(uniqueDesc: string) {
     this.uniqueDesc = uniqueDesc;
@@ -12,11 +10,11 @@ export class InjectionToken<T> {
   get description(): string {
     return this.uniqueDesc;
   }
-
-  get identifier(): string {
-    return this.id;
-  }
 }
+
+export const isSingleProvider = (config: ProviderConfig): boolean => {
+  return typeof config === 'function' || !('multi' in config) || !config.multi;
+};
 
 const getTokenName = (token: ProviderToken): string => {
   return typeof token === 'function' ? token.name : token.description;
