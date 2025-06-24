@@ -12,7 +12,8 @@ npm install angular-style-injector
 
 Before you start using this package, make sure to complete the following steps:
 
-1. Import `reflect-metadata` once in your entry point `.ts` file (`main.ts` or maybe `index.ts`):
+1. Import `reflect-metadata` once in your entry point `.ts` file (`main.ts` or maybe `index.ts`).
+   Also, this import must be the first import in the file:
 
 ```ts
 import 'reflect-metadata';
@@ -35,34 +36,25 @@ import 'reflect-metadata';
 import { Injector, Injectable, InjectionToken } from 'angular-style-injector';
 
 @Injectable()
-class DependencyOne {
-  readonly description = 'Dependency one';
-}
-
-@Injectable()
-class DependencyTwo {
-  readonly description = 'Dependency two';
+class Child {
+  readonly description = 'Child';
 }
 
 @Injectable()
 class Parent {
   readonly description = 'Parent';
 
-  constructor(
-    readonly depOne: DependencyOne,
-    readonly depTwo: DependencyTwo,
-  ) {}
+  constructor(readonly child: Child) {}
 }
 
-const CLASS_TOKEN = new InjectionToken<Parent>('Class token');
-const VALUE_TOKEN = new InjectionToken<number>('Value token');
-const FACTORY_TOKEN = new InjectionToken<string>('Factory token');
-const EXISTING_TOKEN = new InjectionToken<number>('Existing token');
+const CLASS_TOKEN = new InjectionToken<Parent>('useClass');
+const VALUE_TOKEN = new InjectionToken<number[]>('useValue');
+const FACTORY_TOKEN = new InjectionToken<number>('useFactory');
+const EXISTING_TOKEN = new InjectionToken<number>('useExisting');
 
 const injector = Injector.create({
   providers: [
-    DependencyOne,
-    DependencyTwo,
+    Child,
     { provide: CLASS_TOKEN, useClass: Parent },
     { provide: VALUE_TOKEN, useValue: 10, multi: true },
     { provide: VALUE_TOKEN, useValue: 20, multi: true },
@@ -70,11 +62,10 @@ const injector = Injector.create({
   ],
   parent: Injector.create({
     providers: [
-      DependencyTwo,
       {
         provide: FACTORY_TOKEN,
-        useFactory: (depTwo: DependencyTwo) => depTwo.description,
-        deps: [DependencyTwo],
+        useFactory: (array: number[]) => array.reduce((acc, num) => acc + num, 0),
+        deps: [VALUE_TOKEN],
       },
     ],
     name: 'Parent injector',
@@ -83,47 +74,55 @@ const injector = Injector.create({
 });
 
 console.log(
-  injector.get(CLASS_TOKEN), // instance of Parent class
+  injector.get(CLASS_TOKEN), // instance of Parent class with necessary deps
   injector.get(VALUE_TOKEN), // Array: [10, 20]
-  injector.get(FACTORY_TOKEN), // String: 'Dependency two'
+  injector.get(FACTORY_TOKEN), // Number: 30
   injector.get(EXISTING_TOKEN), // Array: [10, 20]
 );
 ```
 
-
 ### Optional Dependencies and Fallback Values
 
-You can control how the `Injector` resolves missing dependencies using the optional `notFoundValue` and `InjectOptions`.
+You can control how the `Injector` resolves missing dependencies using the optional `notFoundValue`
+and `InjectOptions`.
 
-#### Using `notFoundValue`
+Using `notFoundValue`
 
 ```ts
-const injector = Injector.create({ providers: [] });
-const value = injector.get(new InjectionToken('MISSING_TOKEN'), 'Default Value');
-console.log(value); // "Default Value"
+const MISSING_TOKEN = new InjectionToken('Missing');
+
+const injector = Injector.create({
+  providers: [],
+});
+
+console.log(injector.get(MISSING_TOKEN, 'Default Value')); // "Default Value"
 ```
 
-#### Using `InjectOptions`
+Using `InjectOptions`
 
 You can provide options like `optional`, `self`, and `skipSelf` to control resolution behavior:
 
-```ts
-const token = new InjectionToken<string>('TestToken');
-
-const parent = Injector.create({ providers: [{ provide: token, useValue: 'from parent' }] });
-const child = Injector.create({ providers: [], parent });
-
-const value1 = child.get(token); // "from parent"
-
-const value2 = child.get(token, undefined, { self: true }); // throws Error
-const value3 = child.get(token, null, { optional: true });  // returns null
-```
-
-`InjectOptions` interface:
 ```ts
 interface InjectOptions {
   optional?: boolean; // if true, returns null when token is not found
   self?: boolean;     // if true, only checks current injector
   skipSelf?: boolean; // if true, skips current injector and looks up the parent chain
 }
+
+const TOKEN = new InjectionToken<string>('useValue');
+
+const parentInjector = Injector.create({
+  providers: [{ provide: TOKEN, useValue: 'from parent' }]
+});
+
+const childInjector = Injector.create({
+  providers: [], 
+  parent: parentInjector
+});
+
+console.log(
+  childInjector.get(TOKEN), // "from parent"
+  childInjector.get(TOKEN, undefined, { self: true }), // throws Error
+  childInjector.get(TOKEN, null, { optional: true })  // returns null
+);
 ```
