@@ -54,19 +54,21 @@ const EXISTING_TOKEN = new InjectionToken<number>('useExisting');
 
 const injector = Injector.create({
   providers: [
-    Child,
-    { provide: CLASS_TOKEN, useClass: Parent },
     { provide: VALUE_TOKEN, useValue: 10, multi: true },
     { provide: VALUE_TOKEN, useValue: 20, multi: true },
     { provide: EXISTING_TOKEN, useExisting: VALUE_TOKEN },
+    {
+      provide: FACTORY_TOKEN,
+      useFactory: (array: number[]) => {
+        return array.reduce((acc, num) => acc + num, 0);
+      },
+      deps: [VALUE_TOKEN],
+    },
   ],
   parent: Injector.create({
     providers: [
-      {
-        provide: FACTORY_TOKEN,
-        useFactory: (array: number[]) => array.reduce((acc, num) => acc + num, 0),
-        deps: [VALUE_TOKEN],
-      },
+      Child,
+      { provide: CLASS_TOKEN, useClass: Parent },
     ],
     name: 'Parent injector',
   }),
@@ -74,7 +76,7 @@ const injector = Injector.create({
 });
 
 console.log(
-  injector.get(CLASS_TOKEN), // instance of Parent class with necessary deps
+  injector.get(CLASS_TOKEN), // instance of Parent class
   injector.get(VALUE_TOKEN), // Array: [10, 20]
   injector.get(FACTORY_TOKEN), // Number: 30
   injector.get(EXISTING_TOKEN), // Array: [10, 20]
@@ -95,7 +97,9 @@ const injector = Injector.create({
   providers: [],
 });
 
-console.log(injector.get(MISSING_TOKEN, 'Default Value')); // "Default Value"
+console.log(
+  injector.get(MISSING_TOKEN, 'Default Value') // "Default Value"
+);
 ```
 
 Using `InjectOptions`
