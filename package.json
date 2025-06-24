@@ -20,6 +20,10 @@
     "ioc-container",
     "di container"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/emmat-york/angular-style-injector.git"
+  },
   "author": "emmat-york",
   "license": "MIT",
   "dependencies": {
