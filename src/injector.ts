@@ -102,7 +102,7 @@ export class Injector {
     }
 
     if (shouldCheckParent && this.parent) {
-      return this.parent.internalGet(token, originName, notFoundValue);
+      return this.parent.internalGet(token, originName, notFoundValue, { optional });
     }
 
     if (notFoundValue !== undefined) {
