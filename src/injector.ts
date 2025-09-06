@@ -13,13 +13,8 @@ export class Injector {
   private readonly providers = new Map<ProviderToken, ProviderConfig | ProviderConfig[]>();
   private readonly resolvers = new Map<ProviderToken, unknown>();
 
-  private readonly parent?: Injector;
-  private readonly name?: string;
-
-  constructor(config: { parent?: Injector; name?: string }) {
-    this.parent = config.parent;
-    this.name = config.name;
-  }
+  private parent?: Injector;
+  private name?: string;
 
   /**
    * @description Creates a new instance of the `Injector` class.
@@ -33,7 +28,10 @@ export class Injector {
    * @remarks If no providers are passed, a warning will be logged to the console.
    **/
   static create(config: CreateInjectorConfig): Injector {
-    const injector = new Injector({ parent: config.parent, name: config.name });
+    const injector = new Injector();
+
+    injector.parent = config.parent;
+    injector.name = config.name;
 
     if (config.providers.length) {
       for (const provider of config.providers) {
