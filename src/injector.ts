@@ -1,6 +1,5 @@
 import {
   Constructor,
-  CreateInjectorConfig,
   ExtractOutputValue,
   InjectableConstructor,
   InjectOptions,
@@ -27,7 +26,11 @@ export class Injector {
    *
    * @remarks If no providers are passed, a warning will be logged to the console.
    **/
-  static create(config: CreateInjectorConfig): Injector {
+  static create(config: {
+    providers: ProviderConfig[];
+    parent?: Injector;
+    name?: string;
+  }): Injector {
     const injector = new Injector();
 
     injector.parent = config.parent;

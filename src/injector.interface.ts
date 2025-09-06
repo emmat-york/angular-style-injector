@@ -1,7 +1,7 @@
 import { InjectionToken } from './injector.constant';
-import { Injector } from './injector';
 
 export type Constructor = { new (...args: any[]): object };
+
 export type InjectableConstructor = Constructor & {
   __injectable__?: true;
 };
@@ -19,12 +19,6 @@ export type ProviderConfig =
       deps?: ProviderToken[];
       multi?: boolean;
     };
-
-export interface CreateInjectorConfig {
-  providers: ProviderConfig[];
-  parent?: Injector;
-  name?: string;
-}
 
 export interface InjectOptions {
   optional?: boolean;
