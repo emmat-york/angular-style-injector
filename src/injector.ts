@@ -3,10 +3,13 @@ import {
   ExtractOutputValue,
   InjectableConstructor,
   InjectOptions,
+  InjectOptionsBase,
+  OptionalInjectOptions,
   ProviderConfig,
   ProviderToken,
+  RequiredInjectOptions,
 } from './injector.interface';
-import { INJECTOR_ERRORS, isSingleProvider } from './injector.constant';
+import { INJECTOR_ERRORS, isSingleProvider } from './injector.util';
 
 export class Injector {
   private readonly providers = new Map<ProviderToken, ProviderConfig | ProviderConfig[]>();
@@ -63,11 +66,23 @@ export class Injector {
    * @remarks If the token is not found in the current injector,
    * the method delegates resolution to the parent injector (if present).
    **/
-  get<T extends ProviderToken, Output extends ExtractOutputValue<T>>(
-    token: T,
-    notFoundValue?: Output,
-    options?: InjectOptions,
-  ): Output {
+  get<Token extends ProviderToken>(
+    token: Token,
+    notFoundValue?: ExtractOutputValue<Token>,
+    options?: RequiredInjectOptions,
+  ): ExtractOutputValue<Token>;
+
+  get<Token extends ProviderToken>(
+    token: Token,
+    notFoundValue?: ExtractOutputValue<Token>,
+    options?: OptionalInjectOptions,
+  ): ExtractOutputValue<Token> | null;
+
+  get<Token extends ProviderToken>(
+    token: Token,
+    notFoundValue?: ExtractOutputValue<Token>,
+    options?: InjectOptionsBase & { optional?: boolean },
+  ) {
     return this.internalGet(token, this.name, notFoundValue, options);
   }
 
@@ -76,8 +91,8 @@ export class Injector {
    * the original injector's name `originName` and `notFoundValue` during
    * recursive resolution through the parent injector chain.
    **/
-  private internalGet<T extends ProviderToken, Output extends ExtractOutputValue<T>>(
-    token: T,
+  private internalGet<Token extends ProviderToken, Output extends ExtractOutputValue<Token>>(
+    token: Token,
     originName?: string,
     notFoundValue?: Output,
     options?: InjectOptions,
@@ -88,10 +103,8 @@ export class Injector {
     const shouldCheckParent = !self;
 
     if (shouldCheckSelf) {
-      const resolver = this.resolvers.get(token);
-
-      if (resolver) {
-        return resolver as Output;
+      if (this.resolvers.has(token)) {
+        return this.resolvers.get(token) as Output;
       }
 
       const provider = this.providers.get(token);

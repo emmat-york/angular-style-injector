@@ -1,4 +1,4 @@
-import { InjectionToken } from './injector.constant';
+import { InjectionToken } from './injector.util';
 
 export type Constructor = { new (...args: any[]): object };
 
@@ -19,6 +19,19 @@ export type ProviderConfig =
       deps?: ProviderToken[];
       multi?: boolean;
     };
+
+export type InjectOptionsBase = {
+  skipSelf?: boolean;
+  self?: boolean;
+};
+
+export type OptionalInjectOptions = InjectOptionsBase & {
+  optional: true;
+};
+
+export type RequiredInjectOptions = InjectOptionsBase & {
+  optional?: false;
+};
 
 export interface InjectOptions {
   optional?: boolean;
