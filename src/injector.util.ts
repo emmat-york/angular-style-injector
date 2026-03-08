@@ -24,6 +24,8 @@ const getInjectorName = (name?: string): string => {
   return name ? `Injector: ${name}` : '';
 };
 
+export const INJECTABLE_MARK = Symbol('CLASS_INJECTABLE_MARK_FOR_DI');
+
 export const INJECTOR_ERRORS = {
   EMPTY_PROVIDERS_WARN: (name?: string): string => {
     return `Injector created without any providers. Consider adding providers to enable dependency resolution. ${getInjectorName(name)}`;

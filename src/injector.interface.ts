@@ -1,9 +1,9 @@
-import { InjectionToken } from './injector.util';
+import { INJECTABLE_MARK, InjectionToken } from './injector.util';
 
 export type Constructor = { new (...args: any[]): object };
 
 export type InjectableConstructor = Constructor & {
-  __injectable__?: true;
+  [INJECTABLE_MARK]?: true;
 };
 
 export type ProviderToken = Constructor | InjectionToken<unknown>;

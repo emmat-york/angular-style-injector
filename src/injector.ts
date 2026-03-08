@@ -9,7 +9,7 @@ import {
   ProviderToken,
   RequiredInjectOptions,
 } from './injector.interface';
-import { INJECTOR_ERRORS, isSingleProvider } from './injector.util';
+import { INJECTABLE_MARK, INJECTOR_ERRORS, isSingleProvider } from './injector.util';
 
 export class Injector {
   private readonly providers = new Map<ProviderToken, ProviderConfig | ProviderConfig[]>();
@@ -228,7 +228,7 @@ export class Injector {
     constructor: T,
     originName?: string,
   ): Instance {
-    if (!constructor.__injectable__) {
+    if (!constructor[INJECTABLE_MARK]) {
       throw new Error(INJECTOR_ERRORS.THROW_DECORATOR_MISSING(constructor.name));
     }
 
